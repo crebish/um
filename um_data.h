@@ -8,22 +8,28 @@
 #include "assert.h"
 #include "seq.h"
 
+#define T Data
+typedef struct T *T;
+
 typedef struct Segment {
         Seq_T sequence;
         bool mapped;
 } *Segment;
 
-typedef struct Data {
-        Seq_T memory;
-        uint32_t *registers;
-} *Data;
+extern T initialize_data(FILE *fp);
 
-extern struct Data initialize_data();
+extern uint32_t extract_word(T data);
+extern uint32_t get_word(T data, int segment_index, int word_index);
+extern void set_word(T data, int segment_index, int word_index, uint32_t word);
 
-extern uint32_t get_register(int register_num, Data data);
-extern void set_register(int register_num, uint32_t value, Data data);
+extern uint32_t get_register(T data, int register_num);
+extern void set_register(T data, int register_num, uint32_t value);
 
-extern Segment* get_segment(int segment_index, Data data);
-extern void set_segment(int segment_index, Segment seg, Data data); 
+extern Segment get_segment(T data, int segment_index);
+extern void set_segment(T data, Segment seg, int segment_index); 
+extern int push_segment(T data, Segment seg);
 
+extern void data_free(T *data);
+
+#undef T
 #endif
