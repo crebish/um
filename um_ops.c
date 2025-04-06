@@ -55,7 +55,6 @@ void bitwiseNAND(Data data, int A, int B, int C)
 void map_segment(Data data, int B, int C)
 {
         int size = get_register(data, C);
-
         int index = insert_segment(data, size);
 
         set_register(data, B, index);
@@ -63,7 +62,7 @@ void map_segment(Data data, int B, int C)
 
 void unmap_segment(Data data, int C)
 {
-        set_segment_false(data, C);
+        set_segment_false(data, get_register(data, C));
 }
 
 void output(Data data, int C)

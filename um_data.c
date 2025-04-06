@@ -183,7 +183,6 @@ int insert_segment(T data, int size)
                 *ptr = 0;
                 Seq_addhi(seg->sequence, ptr);
         }
-        
         return index;
 }
 
