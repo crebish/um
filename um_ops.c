@@ -54,34 +54,46 @@ void bitwiseNAND(Data data, int A, int B, int C)
 
 void map_segment(Data data, int B, int C)
 {
-        (void) data;
-        (void) B;
-        (void) C;
+        int size = get_register(data, C);
+
+        int index = insert_segment(data, size);
+
+        set_register(data, B, index);
 }
 
 void unmap_segment(Data data, int C)
 {
-    (void) data;
-    (void) C;
+        set_segment_false(data, C);
 }
 
 void output(Data data, int C)
 {
-        (void) data;
-        (void) C;
+        uint32_t output = get_register(data, C);
+
+        assert(output <= 255);
+
+        putchar((char)output);
 }
 
 void input(Data data, int C)
 {
-        (void) data;
-        (void) C;
+        int input = getchar();
+
+
+        if (input == EOF) {
+                set_register(data, C, 0xFFFFFFFF);
+        } else {
+                if (input >= 0 && input <= 255) {
+                        set_register(data, C, input);         
+                }
+        }
 }
 
 void load_program(Data data, int B, int C)
 {
-    (void) data;
-    (void) B;
-    (void) C;
+        replace_segment_0(data, get_register(data, B));
+
+        set_memory_index(data, get_register(data, C));
 }
 
 void load_val(Data data, uint32_t word)
