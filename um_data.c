@@ -5,6 +5,7 @@
 #include <stdint.h>
 #include "assert.h"
 #include "seq.h"
+
 #define T Data
 
 struct T {
@@ -16,13 +17,16 @@ struct T {
 static void read_um_file(T data, FILE *fp)
 {
         assert(fp != NULL);
-        uint32_t val = 0;
 
         Segment seg = malloc(sizeof(struct Segment));
         seg->mapped = true;
-        seg->sequence = Seq_new(0);
+        int size = 0;
+        int capacity = 100;
+        seg->sequence = malloc(capacity * sizeof(uint32_t));
+        assert(seg->sequence);
         
         int byte = 0;
+        uint32_t val = 0;
         while ((byte = fgetc(fp)) != EOF) {
                 for (int i = 0; i < 3; i++) {
                         if(byte == EOF) {
@@ -32,10 +36,32 @@ static void read_um_file(T data, FILE *fp)
                         byte = fgetc(fp);
                 }
                 val = (val << 8) | (uint32_t) byte;
-                uint32_t *ptr = malloc(sizeof(uint32_t));
-                *ptr = val;
-                Seq_addhi(seg->sequence, ptr);
+
+                if (size >= capacity) {
+                        capacity *= 2;
+                        uint32_t *new_sequence = (uint32_t *)realloc(seg->sequence, capacity * sizeof(uint32_t)); 
+                        assert(new_sequence != NULL);
+                        seg->sequence = new_sequence;
+                }
+
+                seg->sequence[size] = val;
+                size++;
+
+                // if (size % 99 == 0) {
+                //         //fprintf(stderr, "here");
+                //         seg->sequence = realloc(seg->sequence, (size + 100) * sizeof(uint32_t));
+                //         assert(seg->sequence);
+                // }
+
+                // size++;
+
+                // uint32_t *ptr = malloc(sizeof(uint32_t));
+                // *ptr = val;
+                // Seq_addhi(seg->sequence, ptr);
         }
+        //fprintf(stderr, "HERE");
+        // seg->sequence = realloc(seg->sequence, size + 1 * sizeof(uint32_t));
+        // assert(seg->sequence);
 
         Seq_addhi(data->memory, seg);  
 }
@@ -66,27 +92,30 @@ uint32_t extract_word(T data)
         assert(data != NULL);
         
         Segment seg = Seq_get(data->memory, 0);
-        uint32_t *val = Seq_get(seg->sequence, data->memory_index);
-
+        // uint32_t val = Seq_get(seg->ssequence, data->memory_index);
+        uint32_t val = seg->sequence[data->memory_index];
         data->memory_index++;
 
-        return *val;
+        // return *val;
+        return val;
 }
 
 uint32_t get_word(T data, int segment_index, int word_index) {
-        Segment seg = Seq_get(data->memory, segment_index);
-        uint32_t *ptr = Seq_get(seg->sequence, word_index); 
-        return *ptr;
-}
+        assert(data != NULL);
 
+        Segment seg = Seq_get(data->memory, segment_index);
+        // uint32_t *ptr = Seq_get(seg->sequence, word_index); 
+        uint32_t val = seg->sequence[word_index];
+        return val;
+}
 
 void set_word(T data, int segment_index, int word_index, uint32_t word)
 {
-        Segment seg = Seq_get(data->memory, segment_index);
+        Segment seg = Seq_get(data->memory, segment_index);        
+        
+        // uint32_t *ptr = Seq_get(seg->sequence, word_index);
 
-        uint32_t *ptr = Seq_get(seg->sequence, word_index);
-
-        *ptr = word;
+        seg->sequence[word_index] = word;
 }
 
 uint32_t get_register(T data, int register_num) 
@@ -137,11 +166,26 @@ void replace_segment_0(T data, int segment_index)
         Seq_put(data->memory, segment_index, seg_0);
 }
 
-int push_segment(T data, Segment seg) 
+static int push_segment(T data, int size) 
 {
-        assert(data != NULL);
-        assert(seg != NULL);
-        
+
+        Segment seg = malloc(sizeof(struct Segment));
+        // seg->sequence = Seq_new(0);
+        seg->sequence = malloc(size * sizeof(uint32_t));
+        seg->mapped = true;
+
+        for (int i = 0; i < size; i++) {
+                seg->sequence[i] = 0;
+        }
+
+        //seg->size = size;
+
+        // for (int i; i < size; i++) {
+        //         uint32_t *ptr = malloc(sizeof(uint32_t));
+        //         *ptr = 0;
+        //         Seq_addhi(seg->sequence, ptr);
+        // }
+
         Seq_addhi(data->memory, seg);
         return Seq_length(data->memory) - 1;
 }
@@ -155,34 +199,35 @@ int insert_segment(T data, int size)
         while (seg->mapped != false) {
                 index++;
                 if (index == length) {
-                        Segment new_seg = malloc(sizeof(struct Segment));
-                        new_seg->sequence = Seq_new(0);
-                        new_seg->mapped = true;
-
-                        for (int i; i < size; i++) {
-                                uint32_t *ptr = malloc(sizeof(uint32_t));
-                                *ptr = 0;
-                                Seq_addhi(new_seg->sequence, ptr);
-                        }
-                        return push_segment(data, new_seg);
+                        return push_segment(data, size);
                 }
                 seg = Seq_get(data->memory, index);
         }
 
-        for (int i = 0; i < Seq_length(seg->sequence); i++) {
-                uint32_t *ptr = Seq_get(seg->sequence, i);
-                free(ptr);
-        }
-        Seq_free(&(seg->sequence));
+        free(seg->sequence);
+        //seg->size = size;
+        
 
-        seg->sequence = Seq_new(0);
+        // for (int i = 0; i < Seq_length(seg->sequence); i++) {
+        //         uint32_t *ptr = Seq_get(seg->sequence, i);
+        //         free(ptr);
+        // }
+        // Seq_free(&(seg->sequence));
+
+        // seg->sequence = Seq_new(0);
         seg->mapped = true;
 
-        for (int i; i < size; i++) {
-                uint32_t *ptr = malloc(sizeof(uint32_t));
-                *ptr = 0;
-                Seq_addhi(seg->sequence, ptr);
+        seg->sequence = malloc(size * sizeof(uint32_t));
+
+        for (int i = 0; i < size; i++) {
+                seg->sequence[i] = 0;
         }
+
+        // for (int i = 0; i < size; i++) {
+        //         uint32_t *ptr = malloc(sizeof(uint32_t));
+        //         *ptr = 0;
+        //         Seq_addhi(seg->sequence, ptr);
+        // }
         return index;
 }
 
@@ -200,11 +245,12 @@ void data_free(T *data)
 
                 Segment curr = get_segment(*data, i);
 
-                for (int i = 0; i < Seq_length(curr->sequence); i++) {
-                        uint32_t *ptr = Seq_get(curr->sequence, i);
-                        free(ptr);
-                }
-                Seq_free(&(curr->sequence));
+                free(curr->sequence);
+                // for (int i = 0; i < Seq_length(curr->sequence); i++) {
+                //         uint32_t *ptr = Seq_get(curr->sequence, i);
+                //         free(ptr);
+                // }
+                // Seq_free(&(curr->sequence));
                 free(curr);
         }
 

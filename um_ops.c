@@ -16,8 +16,8 @@ void conditional_move(Data data, int A, int B, int C)
 
 void segment_load(Data data, int A, int B, int C)
 {
-        uint32_t seg = get_word(data, get_register(data, B), get_register(data, C));
-        set_register(data, A, seg);
+        uint32_t word = get_word(data, get_register(data, B), get_register(data, C));
+        set_register(data, A, word);
 }
 
 void segment_store(Data data, int A, int B, int C)
@@ -29,13 +29,13 @@ void segment_store(Data data, int A, int B, int C)
 
 void add(Data data, int A, int B, int C) 
 {
-        uint32_t sum = (get_register(data, B) + get_register(data, C)) % (~0);
+        uint32_t sum = get_register(data, B) + get_register(data, C);
         set_register(data, A, sum);
 }
 
 void multiplication(Data data, int A, int B, int C) 
 {
-        uint32_t product = (get_register(data, B) * get_register(data, C)) % (~0);
+        uint32_t product = get_register(data, B) * get_register(data, C);
         set_register(data, A, product);
 }
 
@@ -54,8 +54,8 @@ void bitwiseNAND(Data data, int A, int B, int C)
 
 void map_segment(Data data, int B, int C)
 {
-        int size = get_register(data, C);
-        int index = insert_segment(data, size);
+        uint32_t size = get_register(data, C);
+        uint32_t index = insert_segment(data, size);
 
         set_register(data, B, index);
 }

@@ -16,11 +16,12 @@ int main(int argc, char *argv[])
         assert(fp != NULL);
 
         Data data = initialize_data(fp);
+        fclose(fp);
         
         uint32_t word = extract_word(data);
         uint32_t opcode = Bitpack_getu(word, 4, 28);
-        while (opcode != 7){
-
+        
+        while (opcode != 7) {
                 uint32_t ra = Bitpack_getu(word, 3, 6);
                 uint32_t rb = Bitpack_getu(word, 3, 3);
                 uint32_t rc = Bitpack_getu(word, 3, 0);
@@ -85,7 +86,6 @@ int main(int argc, char *argv[])
         //         printf("\n");
         // }
 
-        fclose(fp); 
         data_free(&data);
 
         return EXIT_SUCCESS;

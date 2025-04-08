@@ -12,7 +12,8 @@
 typedef struct T *T;
 
 typedef struct Segment {
-        Seq_T sequence;
+        uint32_t *sequence;
+        // int size;
         bool mapped;
 } *Segment;
 
@@ -28,7 +29,6 @@ extern void set_register(T data, int register_num, uint32_t value);
 extern Segment get_segment(T data, int segment_index);
 extern void replace_segment_0(T data, int segment_index); 
 extern void set_segment_false(T data, int segment_index);
-extern int push_segment(T data, Segment seg);
 extern int insert_segment(T data, int size);
 
 extern void set_memory_index(T data, int index);
