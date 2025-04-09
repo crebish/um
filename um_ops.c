@@ -10,7 +10,7 @@
 void conditional_move(Data data, int A, int B, int C) 
 {
         if (get_register(data, C) != 0) {
-                set_register(data, A, get_register(data, B));
+                set_register(data, A, get_register(data, B)); 
         }
 }
 

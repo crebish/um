@@ -11,12 +11,6 @@
 #define T Data
 typedef struct T *T;
 
-typedef struct Segment {
-        uint32_t *sequence;
-        // int size;
-        bool mapped;
-} *Segment;
-
 extern T initialize_data(FILE *fp);
 
 extern uint32_t extract_word(T data);
@@ -26,13 +20,12 @@ extern void set_word(T data, int segment_index, int word_index, uint32_t word);
 extern uint32_t get_register(T data, int register_num);
 extern void set_register(T data, int register_num, uint32_t value);
 
-extern Segment get_segment(T data, int segment_index);
+extern uint32_t *get_segment(T data, int segment_index);
 extern void replace_segment_0(T data, int segment_index); 
 extern void set_segment_false(T data, int segment_index);
 extern int insert_segment(T data, int size);
 
 extern void set_memory_index(T data, int index);
-
 extern void data_free(T *data);
 
 #undef T
