@@ -16,7 +16,6 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include "assert.h"
-#include "seq.h"
 #include "um_data.h"
 
 extern void conditional_move(Data data, int A, int B, int C);

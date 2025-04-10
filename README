@@ -15,14 +15,11 @@ Shoutout to Dan and Ben!
 Departures from Design
 ========================================================
 
-Changed memory from a sequence to an array to improve speed and allow instant 
-access to indices.
-
-Initially planned to implement memory as a separate struct containing a 
-sequence of words and a boolean flag indicating whether it was mapped or 
+Initially planned to implement segmented memory as a separate struct containing 
+a sequence of words and a boolean flag indicating whether it was mapped or 
 unmapped. Later, to improve efficiency, all elements within the struct were 
 integrated into the overall data of the Universal Machine. As a result, the
-boolean flag and the sequence were both converted into arrays.
+boolean flags became a sequence within the data struct. 
 
 Originally intended the I/O device to be implemented as a separate object or .c 
 file. However, it was ultimately incorporated directly into the um_ops.c 
@@ -31,36 +28,33 @@ file for simplicity and performance.
 ========================================================
 Architecture
 ========================================================
-
 um_data:
-The architecture of um_data.c defines a data structure that contains a dynamic 
-array of memory segments (memory), eight general-purpose32-bit registers 
-(registers), and a mapped array to track whether each memory segment is active. 
+The architecture of um_data.c defines a struct that contains a hanson data
+sequence of memory segments, an array of eight general-purpose32-bit registers, 
+and a unmapped sequence that holds all of the unmapped indices. 
 The file includes functions to initialize the UM state from a binary file by 
-loading it into segment 0, retrieve and modify words in memory, and access or 
-update register values. The segment array and associated data like size, 
+loading it into segment 0, retrieve and modify words in memory, and access or
+update register values. The segment sequence and associated data like size, 
 capacity, and memory_index enable dynamic memory management and program control 
 flow. This module interfaces closely with the UM operations logic defined in
 um_ops.c, enabling execution of instructions through low-level memory and 
-register manipulation.
+register manipulation. 
 
 um_ops:
 The architecture of um_ops.c uses the functionalities and data manipulation 
 defined in um_data.c to complete specific commands/operations using the 
-registers. Used as a helper module for um.c as to keep secrecy and helps make 
-sure that the instructions that are being called and completed correctly.
+registers. Used as a helper module for um.c as to keep secrecy of the segmented
+memory and helps make sure that the instructions that are being called are 
+completed correctly.,513 minutes.
 
 um:
-
-
-
-========================================================
-Explains how long it takes your UM to execute 50 million instructions 
-and how you know
-========================================================
-
-Current it takes 57 seconds to run 30,000 lines of insutrcutions to run
-50 million it would take ~1666 minutes. 
+um handles calling on the operation functions in um_ops based on the opcodes 
+read in through bitpack operations. um.c also calls initialize_data() to 
+initialize all of the data that will be used for the um operations. This data 
+struct is the passed into the um_ops functions to directly edit the segmented 
+memory and registers based on the opcodes and commands reads in from the bitpack 
+operations. These instructions and commands are called within a switch statement 
+based on the information extracted from each word. 
 
 ========================================================
 UM unit test
@@ -75,27 +69,40 @@ UM unit test
 - add_overflow: tests the add instruction when the number would exceed 32 bits
 - divide: tests the divide instruction
 - multiply: tests the multiply instruction
-- multiply_overflow: tests the multiply instruction when the number would exceed
+- multiply-overflow: tests the multiply instruction when the number would exceed
                      32 bits
-- input_output: tests if the given input will be output the same
-- no_cmov: tests conditional move when it should do nothing
-- yes_cmov: tests conditional move when it should change the registers
-- loadandstore: tests to see if segment load and segment store replace the 
+- input-output: tests if the given input will be output the same
+- no-cmov: tests conditional move when it should do nothing
+- yes-cmov: tests conditional move when it should change the registers
+- load-and-store: tests to see if segment load and segment store replace the 
                 correct instruction and cause the program to halt at the 
                 correct position
-- map_test: tests the map function to make sure there is no data leaks
-- unmap_test: test the unmap instruction to make sure there is no data leaks
-- nand_test: tests the nand instruction
-- loadprogram: tests the load program instruction after creating a new segment
+- map: tests the map function to make sure there is no data leaks
+- unmap: test the unmap instruction to make sure there is no data leaks
+- nand: tests the nand instruction
+- load-program: tests the load program instruction after creating a new segment
                and mapping instruction into it
-- realloc_load: tests the program on a large .um file that forces our 
-                implementation to realloc a larger segment 0
+- load-program2: tests the load program instruction to ensure that the 
+                 instruction is making a deep copy
+- big-segment: tests the program on a large .um file
 
 ========================================================
 how many hours you have spent analyzing the problem?
 ========================================================
 
 ~7 hours
+
+========================================================
+Explains how long it takes your UM to execute 50 million instructions 
+and how you know
+========================================================
+
+Currently it takes 4:03.75 minutes to run 11,420 instructions to execute
+50 million instructions it would take ~17513 minutes
+
+4 / 11,420 = x / 50 million
+
+x = 17513
 
 ========================================================
 how many hours you have spent preparing your design?

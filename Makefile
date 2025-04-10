@@ -1,11 +1,12 @@
-# Makefile for locality (Comp 40 Assignment 3)
+# Makefile for um (Comp 40 Assignment 6)
 # 
-# Includes build rules for a2test and ppmtrans.
+# Includes build rules for um_data um_ops and um
 #
 # This Makefile is more verbose than necessary.  In each assignment
 # we will simplify the Makefile using more powerful syntax and implicit rules.
 #
 # Last updated: February 16, 2016
+# Changed by: Andrea Cabochan and Chance Rebish 4/10/25
 
 
 ############## Variables ###############
