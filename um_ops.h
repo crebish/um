@@ -1,3 +1,13 @@
+/* * * * * * * * * * * * * * * * * um_ops.h * * * * * * * * * * * * * * * * * *
+ *
+ *     Assignment: CS40 Universal Machine
+ *     Authors:  Andrea Cabochan, Chance Rebish
+ *     Date:     April 04, 2025
+ *
+ *     Summary: 
+ *      Declares operations for Universal Machine that are degines in um_ops.c
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
 #ifndef UM_OPS_INCLUDED
 #define UM_OPS_INCLUDED
 
@@ -8,7 +18,6 @@
 #include "assert.h"
 #include "seq.h"
 #include "um_data.h"
-
 
 extern void conditional_move(Data data, int A, int B, int C);
 extern void segment_load(Data data, int A, int B, int C);

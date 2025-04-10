@@ -1,3 +1,16 @@
+
+/* * * * * * * * * * * * * * * * * um_data.h * * * * * * * * * * * * * * * * * *
+ *
+ *     Assignment: CS40 Universal Machine
+ *     Authors:  Andrea, Cabochan, Chance Rebish
+ *     Date:     April 04, 2025
+ *
+ *     Summary: 
+ *     Declares functions for the Universal Machine data manipulation that are
+ *     defined in um_data.c
+ * 
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+ 
 #ifndef UM_DATA_INCLUDED
 #define UM_DATA_INCLUDED
 
@@ -19,13 +32,10 @@ extern void set_word(T data, int segment_index, int word_index, uint32_t word);
 
 extern uint32_t get_register(T data, int register_num);
 extern void set_register(T data, int register_num, uint32_t value);
-
-extern uint32_t *get_segment(T data, int segment_index);
-extern void replace_segment_0(T data, int segment_index); 
+extern void replace_segment_0(T data, int segment_index, int memory_index); 
 extern void set_segment_false(T data, int segment_index);
 extern int insert_segment(T data, int size);
 
-extern void set_memory_index(T data, int index);
 extern void data_free(T *data);
 
 #undef T
