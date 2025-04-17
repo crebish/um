@@ -1,5 +1,5 @@
-Universal Machine
-4/9/2025
+Universal Machine Profiling
+4/16/2025
 
 Andrea Cabochan
 Chance Rebish
@@ -12,101 +12,36 @@ Acknowlegdments
 Shoutout to Dan, Ben, and Rachel!
 
 ========================================================
-Departures from Design
-========================================================
-Initially planned to implement segmented memory as a separate struct containing 
-a sequence of words and a boolean flag indicating whether it was mapped or 
-unmapped. Later, to improve efficiency, all elements within the struct were 
-integrated into the overall data of the Universal Machine. As a result, the
-boolean flags became a sequence within the data struct. 
-
-Originally intended the I/O device to be implemented as a separate object or .c 
-file. However, it was ultimately incorporated directly into the um_ops.c 
-file for simplicity and performance.
-
-========================================================
-Architecture
-========================================================
-um_data:
-um_data implements the underlying data model of the Universal Machine. It 
-encapsulates the segmented memory as a Hanson sequence of arrays, a register 
-file with eight 32-bit general-purpose registers, and an additional sequence 
-for tracking unmapped segment indices. This module abstracts memory management, 
-register access, and dynamic segment operations. It hides the implementation 
-details of memory allocation and register manipulation from other modules, 
-exposing only a controlled interface for interaction.
-
-um_ops:
-The architecture of um_ops.c uses the functionalities and data manipulation 
-defined in um_data.c to complete specific commands/operations using the 
-registers. Used as a helper module for um.c as to keep secrecy of the segmented
-memory and helps make sure that the instructions that are being called are 
-completed correctly.
-
-um:
-um serves as the control module and entry point of the system. It coordinates 
-execution by reading instructions, decoding them via bitpack operations, and 
-dispatching them to the appropriate handlers in um_ops. It initializes the 
-machine state using um_data, and manages program flow using a switch statement. 
-This module maintains no knowledge of memory or register internals, preserving 
-modular boundaries.
-
-========================================================
-UM unit test
-========================================================
-- halt: tests halt by running halt
-- halt-verbose: tests halt with random instructions after it to make sure it 
-                does not continue
-- add: tests the add instruction by adding two numbers together
-- print-six: tests the add and output instruction by adding number to ASCII six
-             and outputting the result
-- add_overflow: tests the add instruction when the number would exceed 32 bits
-- divide: tests the divide instruction
-- multiply: tests the multiply instruction
-- multiply-overflow: tests the multiply instruction when the number would exceed
-                     32 bits
-- input-output: tests if the given input will be output the same
-- no-cmov: tests conditional move when it should do nothing
-- yes-cmov: tests conditional move when it should change the registers
-- load-and-store: tests to see if segment load and segment store replace the 
-                correct instruction and cause the program to halt at the 
-                correct position
-- map: tests the map function to make sure there is no data leaks
-- unmap: test the unmap instruction to make sure there is no data leaks
-- nand: tests the nand instruction
-- load-program: tests the load program instruction after creating a new segment
-               and mapping instruction into it
-- load-program2: tests the load program instruction to ensure that the 
-                 instruction is making a deep copy
-- big-segment: tests the program on a large .um file
-
-========================================================
-how many hours you have spent analyzing the problem?
+Section 2.4 
 ========================================================
 
-~7 hours
+Once you’ve found the place where the most time is spent, examine the assembly code and either identify
+specific ways (changes to to the assembly code itself) in which it could be improved or argue that there is
+not an obvious way to improve the assembly code.
+
+Things to look for include:
+• Do you see opportunities to keep data in registers, where currently there are unnecessary memory
+accesses?
+• Do you see unnecessary computation in loops?
+
+Be alert for a horrible idiom in the Intel assembly language: the instruction
+mov %esi, %esi
+looks redundant, but it’s not. This idiom stands for an instruction that zeroes out the most significant 32 bits
+of the 64-bit register %rsi. We on the CS 40 staff think this is a bad bit of language design, but do watch
+out for it.
+For this assignment, there is no need to modify assembly code.
+
+
+
 
 ========================================================
-Explains how long it takes your UM to execute 50 million instructions 
-and how you know
-========================================================
-
-Currently it takes 3:53.6 minutes to run 11,420 instructions to execute
-50 million instructions it would take ~17513 minutes (~291.8 hours)
-
-(Rounding up to 4 minutes)
-4 / 11,420 = x / 50 million
-
-x = 17513
-
-========================================================
-how many hours you have spent preparing your design?
+Hours Spent Analyzing Problem  
 ========================================================
 
 ~5 hours
 
 ========================================================
-how many hours you have spent solving the problems after your analysis?
+Hours Spent Solving Problem  
 ========================================================
 
-~15 hours
+~7 hours

@@ -96,12 +96,12 @@ void run_um(Data data)
         /* Grab the word and opcode from the word */
         uint32_t word = extract_word(data);
         // uint32_t opcode = Bitpack_getu(word, 4, 28); 
-        uint32_t opcode = (0xF0000000 & word) >> 28;
+        // uint32_t opcode = (0xF0000000 & word) >> 28;
         
         int input;
 
         /* While the halt instruction has not been called */
-        while (opcode != 7) {
+        while ((word >> 28) != 7) {
 
                 // /* Grab the register to be used */
                 // uint32_t ra = Bitpack_getu(word, 3, 6);
@@ -109,7 +109,7 @@ void run_um(Data data)
                 // uint32_t rc = Bitpack_getu(word, 3, 0);
 
                 /* Switch case for each instruction */
-                switch(opcode) {
+                switch(word >> 28) {
                         case 0:
                                 // conditional_move(data, (word & 0x1C0) >> 6, (word & 0x38) >> 3, (word & 0x7));
                                 if (registers[(word & 0x7)] != 0) {
@@ -210,7 +210,7 @@ void run_um(Data data)
                 /* Grab the next word and repeat */
                 word = extract_word(data);
                 // opcode = Bitpack_getu(word, 4, 28);
-                opcode = (0xF0000000 & word) >> 28;
+                // opcode = (0xF0000000 & word) >> 28;
         }
 }
 
