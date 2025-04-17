@@ -2,7 +2,7 @@ halt.um
 halt-verbose.um
 add.um
 print-six.um
-add_overflow.um
+add-overflow.um
 divide.um
 multiply.um
 multiply-overflow.um

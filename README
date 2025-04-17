@@ -9,12 +9,11 @@ Chance Rebish
 Acknowlegdments 
 ========================================================
 
-Shoutout to Dan and Ben!
+Shoutout to Dan, Ben, and Rachel!
 
 ========================================================
 Departures from Design
 ========================================================
-
 Initially planned to implement segmented memory as a separate struct containing 
 a sequence of words and a boolean flag indicating whether it was mapped or 
 unmapped. Later, to improve efficiency, all elements within the struct were 
@@ -29,37 +28,32 @@ file for simplicity and performance.
 Architecture
 ========================================================
 um_data:
-The architecture of um_data.c defines a struct that contains a hanson data
-sequence of memory segments, an array of eight general-purpose32-bit registers, 
-and a unmapped sequence that holds all of the unmapped indices. 
-The file includes functions to initialize the UM state from a binary file by 
-loading it into segment 0, retrieve and modify words in memory, and access or
-update register values. The segment sequence and associated data like size, 
-capacity, and memory_index enable dynamic memory management and program control 
-flow. This module interfaces closely with the UM operations logic defined in
-um_ops.c, enabling execution of instructions through low-level memory and 
-register manipulation. 
+um_data implements the underlying data model of the Universal Machine. It 
+encapsulates the segmented memory as a Hanson sequence of arrays, a register 
+file with eight 32-bit general-purpose registers, and an additional sequence 
+for tracking unmapped segment indices. This module abstracts memory management, 
+register access, and dynamic segment operations. It hides the implementation 
+details of memory allocation and register manipulation from other modules, 
+exposing only a controlled interface for interaction.
 
 um_ops:
 The architecture of um_ops.c uses the functionalities and data manipulation 
 defined in um_data.c to complete specific commands/operations using the 
 registers. Used as a helper module for um.c as to keep secrecy of the segmented
 memory and helps make sure that the instructions that are being called are 
-completed correctly.,513 minutes.
+completed correctly.
 
 um:
-um handles calling on the operation functions in um_ops based on the opcodes 
-read in through bitpack operations. um.c also calls initialize_data() to 
-initialize all of the data that will be used for the um operations. This data 
-struct is the passed into the um_ops functions to directly edit the segmented 
-memory and registers based on the opcodes and commands reads in from the bitpack 
-operations. These instructions and commands are called within a switch statement 
-based on the information extracted from each word. 
+um serves as the control module and entry point of the system. It coordinates 
+execution by reading instructions, decoding them via bitpack operations, and 
+dispatching them to the appropriate handlers in um_ops. It initializes the 
+machine state using um_data, and manages program flow using a switch statement. 
+This module maintains no knowledge of memory or register internals, preserving 
+modular boundaries.
 
 ========================================================
 UM unit test
 ========================================================
-
 - halt: tests halt by running halt
 - halt-verbose: tests halt with random instructions after it to make sure it 
                 does not continue
@@ -97,9 +91,10 @@ Explains how long it takes your UM to execute 50 million instructions
 and how you know
 ========================================================
 
-Currently it takes 4:03.75 minutes to run 11,420 instructions to execute
-50 million instructions it would take ~17513 minutes
+Currently it takes 3:53.6 minutes to run 11,420 instructions to execute
+50 million instructions it would take ~17513 minutes (~291.8 hours)
 
+(Rounding up to 4 minutes)
 4 / 11,420 = x / 50 million
 
 x = 17513

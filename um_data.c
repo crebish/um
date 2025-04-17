@@ -27,11 +27,13 @@
 * Machine data
 */
 struct T {
-        Seq_T memory; /* Sequence that holds all data segments */
+        uint32_t **memory; /* Sequence that holds all data segments */
         Seq_T unmaps; /* Sequence that holds all unmapped indexes */
-        Seq_T segment;  /* Sequence that holds all of the segments */
+        uint32_t *seg_sizes;
         uint32_t registers[8]; /* Array that holds all 8 registers */
         int memory_index; /* Tracks the current word index in segment 0 */
+        int size;
+        int capacity;
 };
 
 /* * * * * * * * * * * * * * * * * read_um_file * * * * * * * * * * * * * *
@@ -53,8 +55,11 @@ struct T {
 static void read_um_file(T data, FILE *fp)
 {
         /* Create a sequence of segmented memory */
-        Seq_T seg = Seq_new(0);
-        assert(seg);
+        // Seq_T seg = Seq_new(0);
+        int size = 0;
+        int capacity = 100;
+        uint32_t *seg = malloc(capacity * sizeof(uint32_t));
+        assert(seg != NULL);
         
         /*
          * Grabs each 32 bit word places them into
@@ -75,11 +80,20 @@ static void read_um_file(T data, FILE *fp)
                 /* bit shift val to input big endian order */
                 val = (val << 8) | (uint32_t) byte;
 
-                Seq_addhi(seg, (void *)(uintptr_t) val);
+                if (size >= capacity) {
+                        capacity *= 2;
+                        seg = realloc(seg, capacity * sizeof(uint32_t));
+                }
+
+                seg[size] = val;
+                size++;
+                // Seq_addhi(seg, (void *)(uintptr_t) val);
         }
 
         /* Add segment 0 to Data struct */
-        Seq_addhi(data->memory, seg);  
+        // Seq_addhi(data->memory, seg); 
+        data->memory[0] = seg; 
+        data->seg_sizes[0] = size;
 }
 
 /* * * * * * * * * * * * * * * * * initialize_data * * * * * * * * * * * * * *
@@ -100,19 +114,28 @@ static void read_um_file(T data, FILE *fp)
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 T initialize_data(FILE *fp) 
 {
-        assert(fp != NULL);
+        // assert(fp != NULL);
 
         /* Malloc and initialize components of the Data struct */
         T data = malloc(sizeof(struct T));
-        data->memory = Seq_new(0);
+        assert(data != NULL);
+
+        data->memory = malloc(10 * sizeof(uint32_t*));
+        assert(data->memory != NULL);
 
         data->unmaps = Seq_new(0);
+        // assert(data->unmaps != NULL);
 
+        data->seg_sizes = malloc(10 * sizeof(int));
+        assert(data->seg_sizes != NULL);
+        
         for (int i = 0; i < 8; i++) {
                 data->registers[i] = 0;
         }
 
         data->memory_index = 0;
+        data->size = 1;
+        data->capacity = 10;
 
         /* Place input file contents in segment 0 */
         read_um_file(data, fp);
@@ -136,15 +159,16 @@ T initialize_data(FILE *fp)
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 uint32_t extract_word(T data)
 {
-        assert(data != NULL);
+        // assert(data != NULL);
         
         /* Grab the word at (segment 0, memory_index) */
-        Seq_T seg = Seq_get(data->memory, 0);
-        uint32_t val =  (uint32_t)(uintptr_t) Seq_get(seg, data->memory_index);
+        // Seq_T seg = Seq_get(data->memory, 0);
+        // uint32_t val =  (uint32_t)(uintptr_t) Seq_get(seg, data->memory_index);
+
 
         data->memory_index++;
 
-        return val;
+        return data->memory[0][data->memory_index - 1];
 }
 
 /* * * * * * * * * * * * * * * * * get_word * * * * * * * * * * * * * * * *
@@ -167,21 +191,24 @@ uint32_t extract_word(T data)
 *      runtime error for the other expectations it will CRE
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 uint32_t get_word(T data, int segment_index, int word_index) {
-        assert(data != NULL);
+        // assert(data != NULL);
 
         /* Grab the word at (segment_index, word_index) */
-        Seq_T seg = Seq_get(data->memory, segment_index);
-        uint32_t val = (uint32_t)(uintptr_t) Seq_get(seg, word_index); 
+        // Seq_T seg = Seq_get(data->memory, segment_index);
+        
+        // uint32_t val = (uint32_t)(uintptr_t) Seq_get(seg, word_index); 
 
-        return val;
+        return data->memory[segment_index][word_index];
 }
 
 void set_word(T data, int segment_index, int word_index, uint32_t word)
 {
         /* Set word at (segment_index, word_index) */
-        Seq_T seg = Seq_get(data->memory, segment_index);        
+        // Seq_T seg = Seq_get(data->memory, segment_index);        
         
-        Seq_put(seg, word_index, (void *)(uintptr_t) word);
+        // Seq_put(seg, word_index, (void *)(uintptr_t) word);
+
+        data->memory[segment_index][word_index] = word;
 }
 
 
@@ -203,8 +230,8 @@ void set_word(T data, int segment_index, int word_index, uint32_t word)
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 uint32_t get_register(T data, int register_num) 
 {
-        assert(data != NULL);
-        assert(register_num >= 0 && register_num < 8);
+        // assert(data != NULL);
+        // assert(register_num >= 0 && register_num < 8);
 
         return data->registers[register_num];
 }
@@ -228,8 +255,8 @@ uint32_t get_register(T data, int register_num)
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 void set_register(T data, int register_num, uint32_t value) 
 {
-        assert(data != NULL);
-        assert(register_num >= 0 && register_num < 8);
+        // assert(data != NULL);
+        // assert(register_num >= 0 && register_num < 8);
 
         data->registers[register_num] = value;
 }
@@ -252,8 +279,8 @@ void set_register(T data, int register_num, uint32_t value)
 *      Failure to meet these expectations results in a CRE
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 void set_segment_false(T data, int segment_index) {
-        assert(data != NULL);
-        assert(segment_index >= 0 && segment_index < Seq_length(data->memory));
+        // assert(data != NULL);
+        // assert(segment_index >= 0 && segment_index < data->size);
 
         /* Unmap segment by adding segment_index to unmaps sequence */
         Seq_addhi(data->unmaps, (void *)(uintptr_t) segment_index);
@@ -282,8 +309,8 @@ void set_segment_false(T data, int segment_index) {
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 void replace_segment_0(T data, int segment_index, int memory_index) 
 {
-        assert(data != NULL);
-        assert(segment_index >= 0 && segment_index < Seq_length(data->memory));
+        // assert(data != NULL);
+        // assert(segment_index >= 0 && segment_index < data->size);
 
         data->memory_index = memory_index;
 
@@ -293,23 +320,40 @@ void replace_segment_0(T data, int segment_index, int memory_index)
         }
 
         /* Discard the old segment 0 */
-        Seq_T seg_0 = Seq_get(data->memory, 0);
-        Seq_free(&seg_0);
+        // Seq_T seg_0 = Seq_get(data->memory, 0);
+
+        // Seq_free(&seg_0);
+
+        free(data->memory[0]);
 
         /* Grab the segment that will be loaded into segment 0 */
-        Seq_T seg = Seq_get(data->memory, segment_index);
+        // Seq_T seg = Seq_get(data->memory, segment_index);
         
-        int size = Seq_length(seg);
-        
-        /* Create a deep copy of the segment and place in segment 0 */
-        Seq_T seg_new = Seq_new(0);
-        for (int i = 0; i < size; i++) {
-                uint32_t val = (uint32_t)(uintptr_t) Seq_get(seg, i);
+        // int size = Seq_length(seg);
 
-                Seq_addhi(seg_new, (void *)(uintptr_t) val);
+        uint32_t *seg = data->memory[segment_index];
+
+        // int size = data->size;
+
+        int size = data->seg_sizes[segment_index];
+
+        /* Create a deep copy of the segment and place in segment 0 */
+        // Seq_T seg_new = Seq_new(0);
+
+        uint32_t *seg_new = malloc(size * sizeof(uint32_t)); 
+        assert(seg_new != NULL);
+        for (int i = 0; i < size; i++) {
+                // uint32_t val = (uint32_t)(uintptr_t) Seq_get(seg, i);
+
+                
+                // Seq_addhi(seg_new, (void *)(uintptr_t) val);
+
+                seg_new[i] = seg[i];
         }
 
-        Seq_put(data->memory, 0, seg_new);
+        // Seq_put(data->memory, 0, seg_new);
+        data->memory[0] = seg_new;
+        data->seg_sizes[0] = size;
 }
 
 /* * * * * * * * * * * * * * * * * push_segment * * * * * * * * * * * * * * * *
@@ -331,15 +375,29 @@ void replace_segment_0(T data, int segment_index, int memory_index)
 static int push_segment(T data, int size) 
 {
         /* Initialize a new sequence to the specified size */
-        Seq_T seg = Seq_new(0);
-        for (int i; i < size; i++) {
-                uint32_t val = 0;
-                Seq_addhi(seg, (void *)(uintptr_t) val);
+        // Seq_T seg = Seq_new(0);
+        uint32_t *seg = malloc(size * sizeof(uint32_t));
+        assert(seg != NULL);
+        for (int i = 0; i < size; i++) {
+                // uint32_t val = 0;
+                // Seq_addhi(seg, (void *)(uintptr_t) val);
+                seg[i] = 0;
+        }
+
+        if (data->size >= data->capacity) {
+                data->capacity *= 2;
+                data->memory = realloc(data->memory, data->capacity * sizeof(uint32_t*));
+                data->seg_sizes = realloc(data->seg_sizes, data->capacity * sizeof(int));
         }
 
         /* Add it to the Data struct and return its index */
-        Seq_addhi(data->memory, seg);
-        return Seq_length(data->memory) - 1;
+        //Seq_addhi(data->memory, seg);
+        //return Seq_length(data->memory) - 1;
+        data->memory[data->size] = seg;
+        data->seg_sizes[data->size] = size;
+
+        data->size++;
+        return data->size - 1;
 }
 
 /* * * * * * * * * * * * * * * * insert_segment * * * * * * * * * * * * * * *
@@ -371,18 +429,26 @@ int insert_segment(T data, int size)
         uint32_t index = (uint32_t)(uintptr_t) Seq_remlo(data->unmaps);
 
         /* Discard the existing contents in the unmapped segment  */
-        Seq_T seg = Seq_get(data->memory, index);
-        Seq_free(&seg);
+        // Seq_T seg = Seq_get(data->memory, index);
+        // Seq_free(&seg);
+
+        free(data->memory[index]);
 
         /* Initialize a new segment to the specified size */
-        seg = Seq_new(0);
+        // seg = Seq_new(0);
+        uint32_t *seg = malloc(size * sizeof(uint32_t));
+        assert(seg != NULL);
         for (int i = 0; i < size; i++) {
-                uint32_t val = 0;
-                Seq_addhi(seg, (void *)(uintptr_t) val);
+                // uint32_t val = 0;
+                // Seq_addhi(seg, (void *)(uintptr_t) val);
+
+                seg[i] = 0;
         }
 
         /* Place the segment in the Data struct and return its index */
-        Seq_put(data->memory, index, seg);
+        // Seq_put(data->memory, index, seg);
+        data->memory[index] = seg;
+        data->seg_sizes[index] = size;
         return index;
 }
 
@@ -404,17 +470,22 @@ int insert_segment(T data, int size)
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 void data_free(T *data) 
 {
-        assert(data != NULL);
-        assert(*data != NULL);
+        // assert(data != NULL);
+        // assert(*data != NULL);
 
         /* Free each sequence in data->memory sequence */
-        int size = Seq_length((*data)->memory);
+        // int size = Seq_length((*data)->memory);
+        int size = (*data)->size;
         for (int i = 0; i < size; i++) {
-                Seq_T curr = Seq_get((*data)->memory, i);
-                Seq_free(&curr);
+                // Seq_T curr = Seq_get((*data)->memory, i);
+                // Seq_free(&curr);
+
+                free((*data)->memory[i]);
         }
 
-        Seq_free(&((*data)->memory));
+        free((*data)->memory);
+        // Seq_free(&((*data)->memory));
+        free((*data)->seg_sizes);
         Seq_free(&(*data)->unmaps);
         free(*data);
 }

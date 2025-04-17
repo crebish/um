@@ -312,8 +312,8 @@ void load_program(Data data, int B, int C)
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 void load_val(Data data, uint32_t word)
 {
-        int A = Bitpack_getu(word, 3, 25);
-        set_register(data, A, Bitpack_getu(word, 25, 0));
+        // int A = Bitpack_getu(word, 3, 25);
+        set_register(data, (word & 0xE000000) >> 25, (word & 0x1FFFFFF));
 }
 
 

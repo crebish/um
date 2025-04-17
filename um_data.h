@@ -1,15 +1,14 @@
-
 /* * * * * * * * * * * * * * * * * um_data.h * * * * * * * * * * * * * * * * * *
- *
- *     Assignment: CS40 Universal Machine
- *     Authors:  Andrea, Cabochan, Chance Rebish
- *     Date:     April 04, 2025
- *
- *     Summary: 
- *     Declares functions for the Universal Machine data manipulation that are
- *     defined in um_data.c
- * 
- * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+*
+*     Assignment: CS40 Universal Machine
+*     Authors:  Andrea, Cabochan, Chance Rebish
+*     Date:     April 04, 2025
+*
+*     Summary: 
+*     Declares functions for the Universal Machine data manipulation that are
+*     defined in um_data.c
+* 
+* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
  
 #ifndef UM_DATA_INCLUDED
 #define UM_DATA_INCLUDED

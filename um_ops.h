@@ -1,12 +1,12 @@
 /* * * * * * * * * * * * * * * * * um_ops.h * * * * * * * * * * * * * * * * * *
- *
- *     Assignment: CS40 Universal Machine
- *     Authors:  Andrea Cabochan, Chance Rebish
- *     Date:     April 04, 2025
- *
- *     Summary: 
- *      Declares operations for Universal Machine that are degines in um_ops.c
- * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+*
+*     Assignment: CS40 Universal Machine
+*     Authors:  Andrea Cabochan, Chance Rebish
+*     Date:     April 04, 2025
+*
+*     Summary: 
+*      Declares operations for Universal Machine that are degines in um_ops.c
+* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 #ifndef UM_OPS_INCLUDED
 #define UM_OPS_INCLUDED
