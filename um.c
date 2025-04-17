@@ -18,9 +18,11 @@
 #include "assert.h"
 #include "seq.h"
 #include "um_data.h"
-#include "um_ops.h"
+// #include "um_ops.h"
 
 void run_um(Data data);
+
+uint32_t registers[8];
 
 /* * * * * * * * * * * * * * * * main * * * * * * * * * * * * * * *
  *
@@ -57,6 +59,10 @@ void run_um(Data data);
         Data data = initialize_data(fp);
         fclose(fp);
 
+        for (int i = 0; i < 8; i++) {
+                registers[i] = 0;
+        }
+
         run_um(data);
 
         data_free(&data);
@@ -87,13 +93,13 @@ void run_um(Data data);
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 void run_um(Data data) 
 {
-
-        
         /* Grab the word and opcode from the word */
         uint32_t word = extract_word(data);
         // uint32_t opcode = Bitpack_getu(word, 4, 28); 
         uint32_t opcode = (0xF0000000 & word) >> 28;
         
+        int input;
+
         /* While the halt instruction has not been called */
         while (opcode != 7) {
 
@@ -105,45 +111,99 @@ void run_um(Data data)
                 /* Switch case for each instruction */
                 switch(opcode) {
                         case 0:
-                                conditional_move(data, (word & 0x1C0) >> 6, (word & 0x38) >> 3, (word & 0x7));
+                                // conditional_move(data, (word & 0x1C0) >> 6, (word & 0x38) >> 3, (word & 0x7));
+                                if (registers[(word & 0x7)] != 0) {
+                                        registers[(word & 0x1C0) >> 6] = registers[(word & 0x38) >> 3]; 
+                                }
                                 break;
                         case 1:
-                                segment_load(data, (word & 0x1C0) >> 6, (word & 0x38) >> 3, (word & 0x7));
+                                // segment_load(data, (word & 0x1C0) >> 6, (word & 0x38) >> 3, (word & 0x7));
+                                registers[(word & 0x1C0) >> 6] = get_word(data, registers[(word & 0x38) >> 3], registers[(word & 0x7)]); 
+
+                                // set_register(data, (word & 0x1C0) >> 6, );
                                 break;
                         case 2: 
-                                segment_store(data, (word & 0x1C0) >> 6, (word & 0x38) >> 3, (word & 0x7));
+                                // segment_store(data, (word & 0x1C0) >> 6, (word & 0x38) >> 3, (word & 0x7));
+
+                                set_word(data, registers[(word & 0x1C0) >> 6], registers[(word & 0x38) >> 3], registers[(word & 0x7)]);
+                        
                                 break;
                         case 3:
-                                add(data, (word & 0x1C0) >> 6, (word & 0x38) >> 3, (word & 0x7));
+                                // add(data, (word & 0x1C0) >> 6, (word & 0x38) >> 3, (word & 0x7));
+
+                                registers[(word & 0x1C0) >> 6] = registers[(word & 0x38) >> 3] + registers[(word & 0x7)]; 
+
+                                // set_register(data, (word & 0x1C0) >> 6, get_register(data, (word & 0x38) >> 3) + get_register(data, (word & 0x7)));
+                        
                                 break;
                         case 4:
-                                multiplication(data, (word & 0x1C0) >> 6, (word & 0x38) >> 3, (word & 0x7));
+                                // multiplication(data, (word & 0x1C0) >> 6, (word & 0x38) >> 3, (word & 0x7));
+
+                                registers[(word & 0x1C0) >> 6] = registers[(word & 0x38) >> 3] * registers[(word & 0x7)]; 
+
+                                // set_register(data, (word & 0x1C0) >> 6, get_register(data, (word & 0x38) >> 3) * get_register(data, (word & 0x7)));
+                        
                                 break;
                         case 5:
-                                division(data, (word & 0x1C0) >> 6, (word & 0x38) >> 3, (word & 0x7));
+                                // division(data, (word & 0x1C0) >> 6, (word & 0x38) >> 3, (word & 0x7));
+
+                                registers[(word & 0x1C0) >> 6] = registers[(word & 0x38) >> 3] / registers[(word & 0x7)]; 
+
+                                // set_register(data, (word & 0x1C0) >> 6, get_register(data, (word & 0x38) >> 3) / get_register(data, (word & 0x7)));
+                        
                                 break;
                         case 6:
-                                bitwiseNAND(data, (word & 0x1C0) >> 6, (word & 0x38) >> 3, (word & 0x7));
+                                // bitwiseNAND(data, (word & 0x1C0) >> 6, (word & 0x38) >> 3, (word & 0x7));
+                                // uint32_t NAND = ~(get_register(data, B) & get_register(data, C));
+                                registers[(word & 0x1C0) >> 6] = ~(registers[(word & 0x38) >> 3] & registers[(word & 0x7)]);                        
                                 break;
                         case 7:
                                 break;
                         case 8:
-                                map_segment(data, (word & 0x38) >> 3, (word & 0x7));
+                                // map_segment(data, (word & 0x38) >> 3, (word & 0x7));
+
+                                registers[(word & 0x38) >> 3] = insert_segment(data, registers[(word & 0x7)]);
+                                
                                 break;
                         case 9:
-                                unmap_segment(data, (word & 0x7));
+                                // unmap_segment(data, (word & 0x7));
+
+                                set_segment_false(data, registers[(word & 0x7)]);
+
                                 break;
                         case 10:
-                                output(data, (word & 0x7));
+                                // output(data, (word & 0x7));
+
+                                putchar((char) registers[(word & 0x7)]);
+
                                 break;
                         case 11:
-                                input(data, (word & 0x7));
+                                //input(data, (word & 0x7));
+
+                                input = getchar();
+
+                                if (input == EOF) {
+                                        registers[(word & 0x7)] = 0xFFFFFFFF;
+                                } else {
+                                        if (input >= 0 && input <= 255) {
+                                                registers[(word & 0x7)] = input;         
+                                        }
+                                }
+                        
                                 break;
                         case 12:
-                                load_program(data, (word & 0x38) >> 3, (word & 0x7));
+                                // load_program(data, (word & 0x38) >> 3, (word & 0x7));
+
+                                replace_segment_0(data, registers[(word & 0x38) >> 3], registers[(word & 0x7)]);
+
                                 break;
                         case 13: 
-                                load_val(data, word);
+                                // load_val(data, word);
+                                
+                                // set_register(data, (word & 0xE000000) >> 25, (word & 0x1FFFFFF));
+
+                                registers[(word & 0xE000000) >> 25] = (word & 0x1FFFFFF);
+
                                 break;
                 }
                 

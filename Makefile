@@ -60,7 +60,7 @@ all: um
 	$(CC) $(CFLAGS) -c $< -o $@
 
 
-um: um.o um_data.o um_ops.o
+um: um.o um_data.o
 	$(CC) $(LDFLAGS) $^ -o $@ $(LDLIBS)
 
 clean:

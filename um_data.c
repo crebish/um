@@ -30,7 +30,7 @@ struct T {
         uint32_t **memory; /* Sequence that holds all data segments */
         Seq_T unmaps; /* Sequence that holds all unmapped indexes */
         uint32_t *seg_sizes;
-        uint32_t registers[8]; /* Array that holds all 8 registers */
+        // uint32_t registers[8]; /* Array that holds all 8 registers */
         int memory_index; /* Tracks the current word index in segment 0 */
         int size;
         int capacity;
@@ -129,9 +129,9 @@ T initialize_data(FILE *fp)
         data->seg_sizes = malloc(10 * sizeof(int));
         assert(data->seg_sizes != NULL);
         
-        for (int i = 0; i < 8; i++) {
-                data->registers[i] = 0;
-        }
+        // for (int i = 0; i < 8; i++) {
+        //         data->registers[i] = 0;
+        // }
 
         data->memory_index = 0;
         data->size = 1;
@@ -167,7 +167,7 @@ uint32_t extract_word(T data)
 
 
         data->memory_index++;
-
+        
         return data->memory[0][data->memory_index - 1];
 }
 
@@ -233,7 +233,11 @@ uint32_t get_register(T data, int register_num)
         // assert(data != NULL);
         // assert(register_num >= 0 && register_num < 8);
 
-        return data->registers[register_num];
+        // return data->registers[register_num];
+
+        (void) data; 
+        (void) register_num;
+        return 1;
 }
 
 /* * * * * * * * * * * * * * * * * set_register * * * * * * * * * * * * * * * *
@@ -258,8 +262,14 @@ void set_register(T data, int register_num, uint32_t value)
         // assert(data != NULL);
         // assert(register_num >= 0 && register_num < 8);
 
-        data->registers[register_num] = value;
+        // data->registers[register_num] = value;
+
+        (void) data;
+        (void) register_num;
+        (void) value;
 }
+
+
 
 /* * * * * * * * * * * * * * * set_segment_false * * * * * * * * * * * * * * *
 *
